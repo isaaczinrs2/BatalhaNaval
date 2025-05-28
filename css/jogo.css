@@ -68,13 +68,59 @@
     background-color: var(--panel-bg);
     border-radius: 15px;
     padding: 25px;
-    width: auto;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     gap: 20px;
     border: 3px solid var(--secondary-color);
+    width: auto;
+    max-width: 100%;
 }
+
+
+@media (min-width: 992px) {
+    #game-info {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    
+    .info-section {
+        flex: 1;
+        min-width: 200px;
+        margin: 0 10px;
+    }
+}
+
+
+@media (max-width: 991px) {
+    #game-info {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .info-section {
+        width: 100%;
+    }
+}
+
+
+@media (max-width: 576px) {
+    #game-info {
+        padding: 15px;
+    }
+    
+    .info-title {
+        font-size: 1rem;
+    }
+    
+    .info-value {
+        font-size: 1.4rem;
+    }
+}
+
 
 .info-section {
     background-color: rgba(56, 6, 196, 0.3);

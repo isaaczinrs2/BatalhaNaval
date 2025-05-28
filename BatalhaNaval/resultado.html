@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado - Batalha Naval</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/resultado.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 id="result-title">RESULTADO</h1>
+        <div id="result-message"></div>
+        <div class="button-group">
+            <a href="dificuldade.html" class="btn btn-primary">JOGAR NOVAMENTE</a>
+            <a href="index.html" class="btn btn-secondary">VOLTAR AO INÍCIO</a>
+        </div>
+    </div>
+
+    <script>
+        // Obter o resultado do jogo da URL
+        const params = new URLSearchParams(window.location.search);
+        const resultado = params.get('resultado');
+        const score = params.get('score') || 0;
+
+        // Exibir a mensagem de acordo com o resultado
+        const titleElement = document.getElementById('result-title');
+        const messageElement = document.getElementById('result-message');
+        
+        if (resultado === 'vitoria') {
+            titleElement.textContent = 'VITÓRIA!';
+            messageElement.innerHTML = `
+                <p>Parabéns! Você venceu o jogo!</p>
+                <p class="score-display">Pontuação: ${score}</p>
+                <div class="confetti"></div>
+            `;
+        } else {
+            titleElement.textContent = 'FIM DE JOGO';
+            messageElement.innerHTML = `
+                <p>Você não alcançou a pontuação necessária.</p>
+                <p class="score-display">Pontuação: ${score}</p>
+                <p>Tente novamente!</p>
+            `;
+        }
+    </script>
+</body>
+</html>

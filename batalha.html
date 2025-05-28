@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('fundo.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%; /* Altura total da tela */
+        }
+
+        #posconteudo {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        #tabelastyle {
+            position: relative;
+            width: 510px; /* Largura da tabela */
+            height: 610px; /* Altura da tabela */
+            background-color: rgba(255, 255, 255, 0.6); /* Cor de fundo desfocada */
+            backdrop-filter: blur(5px); /* Efeito de desfoque */
+            border: 5px solid #3806c4; /* Borda roxa */
+            border-radius: 10px;
+            overflow: hidden; /* Garante que a borda roxa seja visível */
+        }
+
+        #tabelaesq {
+            margin-left: 50px;
+            width: 300px; /* Largura do painel lateral */
+            height: 610px; /* Altura do painel lateral (igual à altura da tabela) */
+            background-color: #3806c4; /* Cor de fundo do painel lateral */
+            border-radius: 10px 10px 10px 10px; /* Borda arredondada no lado direito */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            color: white; /* Cor do texto */
+            font-size: 30px; /* Tamanho da fonte do texto */
+        }
+
+        table {
+            border-collapse: collapse;
+            table-layout: fixed; /* Define a largura da tabela */
+            width: 90%; /* Largura da tabela ajustada para 90% do container */
+            height: 90%; /* Altura da tabela ajustada para 90% do container */
+            margin-left: 5%; /* Ajusta o posicionamento para a esquerda */
+            margin-top: 90px; /* Ajusta o posicionamento para cima */
+        }
+
+        th, td {
+            border: 2px solid black;
+            padding: 0; /* Removido o preenchimento para garantir que a célula tenha o mesmo tamanho que a imagem */
+            width: 35px; /* Largura da célula */
+            height: 35px; /* Altura da célula */
+            text-align: center;
+            font-size: 14px;
+            cursor: pointer; /* Cursor de ponteiro para indicar que a célula é clicável */
+        }
+
+        img {
+            display: block; /* Exibe a imagem */
+            width: 100%; /* Define a largura da imagem como 100% para preencher completamente a célula */
+            height: 100%; /* Define a altura da imagem como 100% para preencher completamente a célula */
+            object-fit: cover; /* Mantém a proporção da imagem */
+        }
+
+        .labels {
+            background-color: #3806c4; /* Cor de fundo para diferenciar */
+        }
+
+        /* Estilo específico para as células de letras e números */
+        th.labels, td.labels {
+            background-color: #3806c4; /* Cor de fundo roxa */
+            color: white; /* Cor do texto branco */
+        }
+    </style>
+</head>
+<body>
+    <div id="posconteudo">
+        <div id="tabelastyle">
+            <div id="table-container"></div>
+        </div>
+        <div id="tabelaesq">
+           
+            <div style="font-size: 36px; margin-top: 10px;"><b>Batalha Naval</b></div>
+            <div style="font-size: 26px; margin-top: 20px;">Objetivo: 2500 pontos</div>
+            <div>Pontuação: <span id="score">0</span></div>
+            <div style="font-size: 25px;">Jogadas Restantes: <span id="jogadasRestantes">30</span></div>
+        </div>
+    </div>
+
+    <script>
+        var numRows = 10;
+        var numCols = 10;
+        var tableContainer = document.getElementById('table-container');
+        var table = document.createElement('table');
+        var board = []; // Matriz para representar o tabuleiro
+        var numElements = numRows * numCols;
+        var numbarco1 = Math.floor(numElements / 5); // 20% das células ocupadas por barco1
+        var numbarco2 = Math.floor(numElements / 6); // 16.67% das células ocupadas por barco2
+        var numbarco3 = Math.floor(numElements / 10); // 10% das células ocupadas por barco3
+        var numWater = numElements - numbarco1 - numbarco2 - numbarco3; // Restante para água
+        var score = 500; // Pontuação inicial do jogador
+        var maxJogadas = 30; // Número máximo de jogadas permitidas
+        var pontuacaoMinima = 2500; // Pontuação mínima necessária para vencer o jogo
+        var jogadasRealizadas = 0; // Contador de jogadas realizadas
+
+        // Inicializa o tabuleiro
+        function initBoard() {
+            for (var i = 0; i < numRows; i++) {
+                var row = [];
+                for (var j = 0; j < numCols; j++) {
+                    row.push('fire'); // Inicialmente, todas as células são vazias
+                }
+                board.push(row);
+            }
+
+            // Distribui os elementos aleatoriamente no tabuleiro
+            distributeElements('barco1', numbarco1);
+            distributeElements('barco2', numbarco2);
+            distributeElements('barco3', numbarco3);
+        }
+
+        // Distribui elementos aleatoriamente no tabuleiro
+        function distributeElements(elementType, numElements) {
+            for (var e = 0; e < numElements; e++) {
+                var x = Math.floor(Math.random() * numRows);
+                var y = Math.floor(Math.random() * numCols);
+                // Verifica se a célula está vazia antes de adicionar o elemento
+                if (board[x][y] === 'fire') {
+                    board[x][y] = elementType;
+                } else {
+                    // Se a célula não estiver vazia, tenta outra célula
+                    e--;
+                }
+            }
+        }
+
+        // Função para realizar um ataque
+        function attack(x, y) {
+            var cellType = board[x][y];
+            if (cellType === 'fire') {
+                // Simula a revelação de água com uma chance de 100%
+                if (Math.random() < 1) {
+                    cellType = 'agua';
+                } else {
+                    // Se não revelar água, mantém como fire
+                    cellType = 'fire';
+                }
+            }
+            switch (cellType) {
+                case 'barco1':
+                    score += 300;
+                    return { type: 'barco1', score: score, image: 'barco1.png' };
+                case 'barco2':
+                    score += 400;
+                    return { type: 'barco2', score: score, image: 'barco2.png' };
+                case 'barco3':
+                    score += 500;
+                    return { type: 'barco3', score: score, image: 'barco3.png' };
+                case 'agua':
+                    score -= 100;
+                    return { type: 'agua', score: score, image: 'agua.png' };
+            }
+        }
+
+            // Atualiza a exibição da pontuação e verifica as condições de vitória/derrota
+            function updateScore() {
+            var scoreElement = document.getElementById('score');
+            scoreElement.textContent = score;
+
+            var jogadasRestantes = maxJogadas - jogadasRealizadas;
+
+            if (score <= 0 || (jogadasRestantes <= 0 && score < pontuacaoMinima)) {
+                // Exibe mensagem de derrota
+               
+
+                // Redireciona para a página de resultado de derrota
+                window.location.href = 'vitder.html?resultado=derrota';
+            } else if (score >= pontuacaoMinima && jogadasRealizadas <= maxJogadas) {
+                // Exibe mensagem de vitória
+                
+
+                // Redireciona para a página de resultado de vitória
+                window.location.href = 'vitder.html?resultado=vitoria';
+            }
+        }
+    
+
+     // Função para exibir uma mensagem temporária na tela
+        function showTempMessage(message) {
+            var messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            messageElement.style.position = 'fixed';
+            messageElement.style.fontFamily = 'Cambria, Cochin, Georgia, Times, "Times New Roman", serif';
+            messageElement.style.top = '63%';
+            messageElement.style.left = '71%';
+            messageElement.style.transform = 'translate(-50%,-50%)';
+            messageElement.style.backgroundColor = 'rgba(1, 1, 1, 0)';
+            messageElement.style.color = 'white';
+            messageElement.style.padding = '10px';
+            messageElement.style.fontSize = '23px';
+            messageElement.style.borderRadius = '5px';
+            document.body.appendChild(messageElement);
+
+            // Remove a mensagem após alguns segundos 
+            setTimeout(function() {
+                document.body.removeChild(messageElement);
+            }, 500); // Tempo em milissegundos (1 segundos)
+        }
+
+        // Função para tratar o clique em uma célula
+        function handleCellClick(event) {
+            var x = event.target.parentNode.rowIndex - 1; // Ignora a linha de cabeçalho
+            var y = event.target.cellIndex - 1; // Ignora a coluna de letras
+            if (board[x][y] !== 'agua') {
+                var previousScore = score; // Salva o score antes do ataque
+                var attackResult = attack(x, y);
+                var img = document.createElement('img');
+                img.src = attackResult.image;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                event.target.innerHTML = ''; // Limpa o conteúdo anterior
+                event.target.appendChild(img); // Adiciona a nova imagem
+                board[x][y] = 'agua'; // Marca a célula como visitada
+                score = attackResult.score; // Atualiza a pontuação com o resultado do ataque
+                jogadasRealizadas++; // Incrementa o contador de jogadas realizadas
+                updateScore(); // Atualiza a exibição da pontuação
+
+                // Calcula a diferença de pontos e exibe uma mensagem temporária com os pontos ganhos ou perdidos
+                var pontosDiferenca = score - previousScore;
+                var message = attackResult.type === 'agua' ? 'Você PERDEU 100 pontos!' : 'Você GANHOU ' + pontosDiferenca + ' pontos!';
+                showTempMessage(message);
+
+                // Atualiza o número de jogadas restantes
+                var jogadasRestantesElement = document.getElementById('jogadasRestantes');
+                var jogadasRestantes = maxJogadas - jogadasRealizadas;
+                jogadasRestantesElement.textContent = jogadasRestantes;
+            }
+        }
+
+        // Função para criar a tabela
+        function createTable() {
+            var letters = 'ABCDEFGHIJ';
+            var headerRow = document.createElement('tr');
+            headerRow.appendChild(document.createElement('th')); // Célula vazia para o canto
+            for (var i = 0; i < numCols; i++) {
+                var headerCell = document.createElement('th');
+                headerCell.textContent = i + 1;
+                headerCell.classList.add('labels');
+                headerRow.appendChild(headerCell);
+            }
+            table.appendChild(headerRow);
+
+            for (var i = 0; i < numRows; i++) {
+                var row = document.createElement('tr');
+                var letterCell = document.createElement('th');
+                letterCell.textContent = letters[i];
+                letterCell.classList.add('labels');
+                row.appendChild(letterCell);
+
+                for (var j = 0; j < numCols; j++) {
+                    var cell = document.createElement('td');
+                    cell.style.width = '35px';
+                    cell.style.height = '35px';
+                    cell.style.border = '2px solid black';
+                    cell.style.textAlign = 'center';
+                    cell.style.fontSize = '14px';
+                    cell.addEventListener('click', handleCellClick);
+                    row.appendChild(cell);
+                }
+                table.appendChild(row);
+            }
+            tableContainer.appendChild(table);
+        }
+
+        // Função para resetar o jogo
+        function resetGame() {
+            // Limpa o tabuleiro e reinicia a pontuação
+            board = []; // Reinicializa o tabuleiro
+            score = 500; // Pontuação inicial
+            jogadasRealizadas = 0; // Reinicializa o contador de jogadas
+            updateScore(); // Atualiza a exibição da pontuação
+
+            // Remove a tabela existente
+            tableContainer.removeChild(table);
+
+            // Cria uma nova tabela e reinicializa o jogo
+            table = document.createElement('table');
+            createTable(); // Cria uma nova tabela com o jogo reinicializado
+        }
+
+        // Inicialização do jogo
+        function initGame() {
+            initBoard();
+            createTable();
+        }
+
+        // Chamada da função de inicialização do jogo quando a página carrega
+        window.onload = function() {
+            initGame();
+            // Não atualiza a tabela após a inicialização para ocultar as imagens iniciais
+            updateScore(); // Atualiza a exibição da pontuação inicial
+        };
+    </script>
+</body>
+</html>
